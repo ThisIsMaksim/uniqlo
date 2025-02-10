@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "login": "LINK_USERNAME=maksimfedyanindevelop@gmail.com LINK_PASSWORD=48Ab0015749 WITH_PROXY=false npx playwright test -g \"login\" --ui",
+    "send_comment": "LINK_USERNAME=maksimfedyanindevelop@gmail.com LINK_PASSWORD=48Ab0015749 LINK_URL=https://www.linkedin.com/posts/maksim-fedyanin-4a64302a7_test-activity-7271628933895278592-U_j2 WITH_PROXY=false COMMENT=\"test comment uevhouewhbvow\" npx playwright test -g \"send_comment\""
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -14,6 +17,7 @@
     "request-promise": "^4.2.6"
   },
   "dependencies": {
+    "axios": "^1.7.9",
     "readline-sync": "^1.4.10"
   }
 }
