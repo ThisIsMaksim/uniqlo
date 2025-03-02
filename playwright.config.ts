@@ -26,6 +26,7 @@ export default defineConfig({
   timeout: 60 * 10 * 10 * 1000,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    isMobile: true,
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
 
@@ -37,7 +38,7 @@ export default defineConfig({
   projects: [
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices['iPhone 15 Pro Max'] },
     },
 
     /* Test against mobile viewports. */

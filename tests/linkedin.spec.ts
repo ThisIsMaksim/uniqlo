@@ -1,16 +1,6 @@
 import {Browser, Locator, Page, test,} from '@playwright/test'
 import axios from "axios"
 
-const getProxyServer = () => {
-  const username = 'brd-customer-hl_e5b45c17-zone-residential_proxy1';
-  const password = 'r0st0441qc2d';
-  const port = 33335;
-  const session_id = (1000000 * Math.random()) | 0;
-
-  // Proxy server string with authentication credentials
-  return `http://${username}-session-${session_id}:${password}@brd.superproxy.io:${port}`
-}
-
 const postEvent = (value: string) => {
   console.log(`STEALTH${value}STEALTH`)
 }
@@ -19,12 +9,21 @@ const getPage = async (playwright, browser, withCookie = true, javaScriptEnabled
   page: Page,
   browser: Browser
 }> => {
-  const LOCATION = process.env.LINK_LOCATION ? `-country-${process.env.LINK_LOCATION}` : ''
-  const AUTH = `brd-customer-hl_e5b45c17-zone-scraping_browser1${LOCATION}:xo0sw5f5pby7`
-  const SBR_CDP = `wss://${AUTH}@brd.superproxy.io:9222`
+  // Log the current Node.js path
+  console.log('Node.js Path:', process.execPath);
+// Log the current Node.js version
+  console.log('Node.js Version:', process.version);
+
   const withProxy = process.env.WITH_PROXY === 'true'
   const username = process.env.LINK_LOGIN
-  const b = withProxy ? await playwright.chromium.connectOverCDP(SBR_CDP) : browser
+
+  const b = withProxy ? await playwright.chromium.launch({
+    proxy: {
+      server: 'https://gb.smartproxy.com:30001',
+      username: 'spyo4nco0d',
+      password: 'eUvSUa+yo6hcWht908'
+    },
+  }) : browser
 
   const state = {
     cookies: [
@@ -180,6 +179,14 @@ const parseUserInfo = async (page: Page, url: string) => {
       let currentPosition = ''
 
       userName = await getText(userNameWrapper, 'can not find user name')
+
+      if (!userName) {
+        console.error('user name not found')
+
+        return
+      }
+
+
       avatarUrl = await getAttribute(avatar, 'data-delayed-url', 'can not find avatar url')
       currentCompany = await getText(getElement(page, '.member-current-company'), 'can not find current company')
       currentPosition = await getText(
@@ -239,29 +246,32 @@ const getPost = async (post: Locator) => {
     try {
       const text = getElement(post, '.attributed-text-segment-list__content')
 
-      if (await text.isVisible({ timeout: 10 * 1000 })) {
+      if (await text.isVisible({timeout: 10 * 1000})) {
         result.content = await getHTML(text, 'can not find content')
       }
     } catch (e) {
       console.error(e)
     }
 
-    try {
-      if (await post.locator("[data-tracking-control-name='feed_main-feed-card_feed-reaction-header']").isVisible({ timeout: 10 * 1000 })) {
+    if (await post.locator("[data-tracking-control-name='feed_main-feed-card_feed-reaction-header']").isVisible({timeout: 2 * 1000})) {
+      if (await post.locator('.share-native-video').isVisible({timeout: 2 * 1000})) {
+        return null
+      }
+      try {
         result.type = 'reacted'
         result.content = await getHTML(getElement(post, '.attributed-text-segment-list__container'), 'can not find reacted content')
+      } catch (e) {
+        console.error('it is posted')
       }
-    } catch (e) {
-      console.error('it is posted')
-    }
-    try {
-      if (await getElement(post, '.feed-reshare-content').isVisible({timeout: 10 * 1000 })) {
+    } else if (await getElement(post, '.feed-reshare-content').isVisible({timeout: 2 * 1000})) {
+      try {
         result.type = 'shared'
         result.shared_content = await getPost(getElement(post, '.feed-reshare-content'))
+      } catch (e) {
+        console.error('it is posted')
       }
-    } catch (e) {
-      console.error('it is posted')
     }
+
     try {
       const images = await post.locator("[data-feed-action-type='viewImage']").all()
 
@@ -278,17 +288,11 @@ const getPost = async (post: Locator) => {
       console.error('can not find image url')
     }
 
-    const privatelyUrl = await getAttribute(
-      getElement(
-        post,
-        '[data-send-privately-url]'
-      ),
-      'data-send-privately-url',
-      'can not find url'
-    )
-
-    result.link_url = privatelyUrl.replace('/messaging/compose/?body=', '')
-    result.time = await getText(getElementByRole(post, 'time'), 'can not find time')
+    try {
+      result.time = await getText(getElementByRole(post, 'time'), 'can not find time')
+    } catch (e) {
+      console.error(e)
+    }
 
     return result
   } catch (error) {
@@ -296,6 +300,32 @@ const getPost = async (post: Locator) => {
   }
 
   return null
+}
+
+const getFeedItemsWithPagination = async (page: Page) => {
+  const pagination = +process.env.LINK_PAGINATION || 1
+
+  for (let a = 0; a < pagination; a++) {
+    const lastItem = page.locator('.feed-item').last()
+    const count = await page.locator('.feed-item').count()
+
+    await lastItem.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(2 * 1000)
+
+    const newCount = await page.locator('.feed-item').count()
+
+    if (newCount === count) {
+      await page.waitForTimeout(2 * 1000)
+
+      const newCount2 = await page.locator('.feed-item').count()
+
+      if (newCount2 === count) {
+        break
+      }
+    }
+  }
+
+  return page.locator('.feed-item').all()
 }
 
 test('get_feed_with_auth', async ({playwright, browser}) => {
@@ -307,7 +337,7 @@ test('get_feed_with_auth', async ({playwright, browser}) => {
 
     try {
       const result = []
-      const feedItems = await page.locator('.feed-item').all()
+      const feedItems = await getFeedItemsWithPagination(page)
 
       for (let a = 0; a < feedItems.length; a++) {
         try {
@@ -332,11 +362,10 @@ test('get_feed_with_auth', async ({playwright, browser}) => {
       console.log(error)
     }
 
+    await saveSession(page)
   } catch (error) {
     console.log(error)
   } finally {
-    await saveSession(page)
-
     await b.close();
   }
 })
@@ -345,19 +374,19 @@ async function GetOTP(page: Page) {
   let OTP
 
   try {
-    const response = await axios.get(`http://167.99.250.71:8080/api/v1/internal/otp/?email=${process.env.LINK_LOGIN}`);
+    const response = await axios.get(`http://localhost:8080/api/v1/internal/otp/?email=${process.env.LINK_LOGIN}`);
 
     OTP = response.data.otp
   } catch (error) {
     console.log(error)
 
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(1000)
 
     return GetOTP(page)
   }
 
   while (!OTP) {
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(1000)
 
     return GetOTP(page)
   }
@@ -428,7 +457,8 @@ test('login', async ({playwright, browser}) => {
       })
 
       const otpInput = page.locator('.input_verification_pin')
-      const otpSubmitButton = page.locator('#email-pin-submit-button')
+      const otpEmailSubmitButton = page.locator('#email-pin-submit-button').first()
+      const otpTwoStepSubmitButton = page.locator('#two-step-submit-button').first()
 
       console.log('get OTP code')
       const OTP = await GetOTP(page)
@@ -438,12 +468,34 @@ test('login', async ({playwright, browser}) => {
       console.log('fill OTP code')
       await otpInput.fill(OTP)
       console.log('OTP code submit')
-      await otpSubmitButton.click()
+      if (await otpEmailSubmitButton.isVisible()) {
+        await otpEmailSubmitButton.click()
 
-      if (await page.locator('#email-pin-error').isVisible()) {
-        postEvent(JSON.stringify({
-          status: 'INVALID_OTP'
-        }))
+        if (await page.locator('#email-pin-error').isVisible()) {
+          postEvent(JSON.stringify({
+            status: 'INVALID_OTP'
+          }))
+
+          return
+        }
+      } else if (await otpTwoStepSubmitButton.isVisible()) {
+        await otpTwoStepSubmitButton.click()
+
+        const avatarUrl = await getAttribute(
+          getElement(page, '.artdeco-entity-image'),
+          'data-ghost-url',
+          'can not find avatar url'
+        )
+
+        if (!avatarUrl) {
+          postEvent(JSON.stringify({
+            status: 'INVALID_OTP'
+          }))
+
+          return
+        }
+      } else {
+        console.error('otp button not found')
 
         return
       }
@@ -466,7 +518,7 @@ test('login', async ({playwright, browser}) => {
       status: 'CONNECTED'
     }))
   } catch (error) {
-    console.log(error)
+    console.error(error)
   } finally {
     await b.close()
   }
@@ -474,35 +526,35 @@ test('login', async ({playwright, browser}) => {
 
 const longTouch = async (page: Page) => {
   await page.evaluate(() => {
-    const element = document.querySelector('.reactions-menu__trigger')
+    const element = document.getElementsByClassName('reactions-menu__trigger')
 
     const touchStartEvent = new TouchEvent('touchstart', {
       touches: [
         new Touch({
-          clientX: 10,
-          clientY: 10,
+          clientX: 0,
+          clientY: 0,
           identifier: 0,
-          target: element,
+          target: element[1],
         })
       ]
-    });
+    })
 
     const touchEndEvent = new TouchEvent('touchend', {
       touches: [
         new Touch({
-          clientX: 10,
-          clientY: 10,
+          clientX: 0,
+          clientY: 0,
           identifier: 0,
-          target: element,
+          target: element[1],
         })
       ]
-    });
+    })
 
-    element.dispatchEvent(touchStartEvent);
+    element[1].dispatchEvent(touchStartEvent);
 
     return (new Promise(resolve => (
       setTimeout(() => {
-        element.dispatchEvent(touchEndEvent)
+        element[1].dispatchEvent(touchEndEvent)
 
         resolve(undefined)
       }, 2000)
@@ -512,7 +564,7 @@ const longTouch = async (page: Page) => {
 }
 
 test('send_comment', async ({playwright, browser}) => {
-  const {page, browser: b} = await getPage(playwright, browser, false, true)
+  const {page, browser: b} = await getPage(playwright, browser, true, true)
   const externalLinkedInUrl = process.env.LINK_URL
   const comment = process.env.COMMENT
 
@@ -566,17 +618,17 @@ test('send_comment', async ({playwright, browser}) => {
 
     console.info('STEALTHsuccessSTEALTH')
 
+    // await saveSession(page)
+
   } catch (error) {
     console.log(error)
   } finally {
-    await saveSession(page)
-
     await b.close()
   }
 })
 
 test('send_reaction', async ({playwright, browser}) => {
-  const {page, browser: b} = await getPage(playwright, browser, false, true)
+  const {page, browser: b} = await getPage(playwright, browser, true, true)
   const externalLinkedInUrl = process.env.LINK_URL
   const reaction = process.env.LINK_REACTION
 
@@ -605,9 +657,13 @@ test('send_reaction', async ({playwright, browser}) => {
       await page.waitForTimeout(1000)
 
       console.log('save session')
-      await page.context().storageState({path: `auth_state_${process.env.LINK_LOGIN}.json`})
+      await saveSession(page)
     } else {
       console.log('without login')
+    }
+
+    if (await getElement(page, '.promo__dismiss').isVisible()) {
+      await getElement(page, '.promo__dismiss').click()
     }
 
     const reactions = {
@@ -619,24 +675,30 @@ test('send_reaction', async ({playwright, browser}) => {
       entertainment: getElement(page, '#selected-reaction-icon--ENTERTAINMENT'),
     }
 
+    if (!(await page.locator('.reactions-menu__trigger').last().isVisible())) {
+      console.log('did not find reactions-menu')
+
+      return
+    }
+
     console.log('try to show reactions')
     await longTouch(page)
 
-    const userReaction = reactions[reaction]
+    const userReaction: Locator = reactions[reaction]
 
     console.log(`try to click ${reaction} reaction`)
-    await userReaction.click()
+    await userReaction.locator('img').click()
 
     console.log('wait 2 second')
     await page.waitForTimeout(2000)
 
     console.info('STEALTHsuccessSTEALTH')
 
+    // await saveSession(page)
+
   } catch (error) {
     console.log(error)
   } finally {
-    await saveSession(page)
-
     await b.close()
   }
 })
