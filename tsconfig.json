@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": "dist",           // Папка для скомпилированных файлов
-    "rootDir": "src"            // Папка с исходными файлами
+    "rootDir": "api"            // Папка с исходными файлами
   },
   "include": [
     "api"
