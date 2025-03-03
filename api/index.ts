@@ -4,16 +4,20 @@ const express = require('express')
 const app = express()
 const port = 3000
 
-let ITEMS = []
+let ITEMS: any[] = []
 
-app.get('/', async (req, res) => {
+app.use(express.static('public'))
+
+app.get('/', async (req: any, res: any) => {
   try {
-    const json2csvParser = new json2csv.Parser()
-    const csv = json2csvParser.parse(ITEMS)
+    // const json2csvParser = new json2csv.Parser()
+    // const csv = json2csvParser.parse(ITEMS)
+    //
+    // res.header('Content-Type', 'text/csv')
+    // res.attachment('data.csv')
+    // res.send(csv)
 
-    res.header('Content-Type', 'text/csv')
-    res.attachment('data.csv')
-    res.send(csv)
+    res.send('csv')
   } catch (err) {
     console.error(err)
   }
@@ -22,8 +26,8 @@ app.get('/', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 
-  cronGetProducts()
-});
+  // cronGetProducts()
+})
 
 const cronGetProducts = async () => {
   console.log('cronGetProducts');
