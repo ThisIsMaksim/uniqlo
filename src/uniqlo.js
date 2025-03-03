@@ -1,15 +1,14 @@
-import { chromium } from 'playwright'
-import {Parser} from "json2csv"
-
+const playwright = require('playwright')
+const json2csv = require("json2csv")
 const express = require('express')
 const app = express()
 const port = 3000
 
-let ITEMS: any[] = []
+let ITEMS = []
 
-app.get('/', async (req: any, res: any) => {
+app.get('/', async (req, res) => {
   try {
-    const json2csvParser = new Parser()
+    const json2csvParser = new json2csv.Parser()
     const csv = json2csvParser.parse(ITEMS)
 
     res.header('Content-Type', 'text/csv')
@@ -37,7 +36,7 @@ const cronGetProducts = async () => {
 }
 
 async function getProducts() {
-  const browser = await chromium.launch();
+  const browser = await playwright.chromium.launch();
   const context = await browser.newContext({
     javaScriptEnabled: true,
     isMobile: false,
