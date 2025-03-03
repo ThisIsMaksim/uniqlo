@@ -1,10 +1,10 @@
 {
-  "name": "stealth-playwrite",
+  "name": "uniqlo-playwrite",
   "version": "1.0.0",
   "description": "",
-  "main": "uniqlo.ts",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/uniqlo.js"
+    "start": "node src/index.js"
   },
   "keywords": [],
   "author": "",
