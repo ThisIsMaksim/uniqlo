@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2021",            // Нужная версия JS
+    "module": "CommonJS",       // Используйте "module": "ESNext" для ESM
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",           // Папка для скомпилированных файлов
+    "rootDir": "src"            // Папка с исходными файлами
+  },
+  "include": [
+    "api"
+  ]
+}

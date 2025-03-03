@@ -12,14 +12,20 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.48.2",
-    "@types/node": "^22.9.0",
+    "@types/json2csv": "^5.0.7",
+    "@types/node": "^22.13.8",
     "@types/readline-sync": "^1.4.8",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@vercel/node": "^5.1.10",
     "axios": "^1.7.9",
     "csv-writer": "^1.6.0",
+    "express": "^4.21.2",
     "json2csv": "^6.0.0-alpha.2",
+    "playwright": "^1.50.1",
     "readline-sync": "^1.4.10"
   }
 }
