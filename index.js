@@ -8,12 +8,12 @@ let ITEMS = []
 
 app.get('/', async (req, res) => {
   try {
-    // const json2csvParser = new json2csv.Parser()
-    // const csv = json2csvParser.parse(ITEMS)
-    //
-    // res.header('Content-Type', 'text/csv')
-    // res.attachment('data.csv')
-    res.send('csv')
+    const json2csvParser = new json2csv.Parser()
+    const csv = json2csvParser.parse(ITEMS)
+
+    res.header('Content-Type', 'text/csv')
+    res.attachment('data.csv')
+    res.send(csv)
   } catch (err) {
     console.error(err)
   }
