@@ -1,5 +1,5 @@
 # Use the Node.js image
-FROM node:20-alpine
+FROM node:20
 
 RUN apk add --no-cache \
     chromium \
