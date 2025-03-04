@@ -1,13 +1,23 @@
 # Use the Node.js image
 FROM node:20
 
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxcomposite1 \
+    libxrandr2 \
+    libgbm-dev \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libasound2 \
+    libxshmfence1 \
+    libxdamage1 \
+    libcups2-dev \
+    libxkbcommon-x11-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Set the working directory
