@@ -6,10 +6,13 @@ const app = express()
 const port = 3000
 
 app.get('/', async (req, res) => {
+  let jsonData
+
   try {
     try {
       const data = fs.readFileSync('data.json', 'utf8');
-      const jsonData = JSON.parse(data);
+
+      jsonData = JSON.parse(data);
       console.log('JSON прочитан и преобразован в объект:', jsonData);
     } catch (err) {
       console.error('Ошибка при чтении или разборе файла:', err);
