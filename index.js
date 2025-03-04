@@ -136,6 +136,8 @@ async function getProducts() {
   ITEMS = items
 
   console.log('SUCCESS')
+
+  await browser.close()
 }
 
 module.exports = app
