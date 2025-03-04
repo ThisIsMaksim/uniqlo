@@ -13,7 +13,6 @@ app.get('/', async (req, res) => {
       const data = fs.readFileSync('data.json', 'utf8');
 
       jsonData = JSON.parse(data);
-      console.log('JSON прочитан и преобразован в объект:', jsonData);
     } catch (err) {
       console.error('Ошибка при чтении или разборе файла:', err);
     }
