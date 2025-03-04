@@ -4,12 +4,18 @@ const express = require('express')
 const app = express()
 const port = 3000
 
-let ITEMS = []
-
 app.get('/', async (req, res) => {
   try {
+    try {
+      const data = fs.readFileSync('data.json', 'utf8');
+      const jsonData = JSON.parse(data);
+      console.log('JSON прочитан и преобразован в объект:', jsonData);
+    } catch (err) {
+      console.error('Ошибка при чтении или разборе файла:', err);
+    }
+
     const json2csvParser = new json2csv.Parser()
-    const csv = json2csvParser.parse(ITEMS)
+    const csv = json2csvParser.parse(jsonData.items)
 
     res.header('Content-Type', 'text/csv')
     res.attachment('data.csv')
@@ -122,6 +128,13 @@ async function getProducts() {
             }
 
             items.push(item)
+
+            try {
+              fs.writeFileSync('data.json', JSON.stringify({items: items}));
+              console.log('JSON успешно сохранен в data.json');
+            } catch (err) {
+              console.error('Ошибка при записи в файл:', err);
+            }
           }
         }
       } catch (e) {
@@ -132,8 +145,6 @@ async function getProducts() {
   } catch (e) {
     console.error(e)
   }
-  
-  ITEMS = items
 
   console.log('SUCCESS')
 
