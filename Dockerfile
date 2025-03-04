@@ -1,7 +1,7 @@
 # Use the Node.js image
 FROM node:20-alpine
 
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
