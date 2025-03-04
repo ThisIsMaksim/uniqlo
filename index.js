@@ -1,8 +1,9 @@
-const playwright = require('playwright')
+const {chromium} = require('playwright')
 const json2csv = require("json2csv")
 const express = require('express')
 const app = express()
 const port = 3000
+const { spawnSync } = require('child_process')
 
 let ITEMS = []
 
@@ -20,6 +21,8 @@ app.get('/', async (req, res) => {
 })
 
 app.listen(port, () => {
+  spawnSync("npx", ["playwright", "install", "chromium"])
+
   console.log(`Server is running at http://localhost:${port}`);
 
   cronGetProducts()
@@ -36,7 +39,7 @@ const cronGetProducts = async () => {
 }
 
 async function getProducts() {
-  const browser = await playwright.chromium.launch();
+  const browser = await chromium.launch();
   const context = await browser.newContext({
     javaScriptEnabled: true,
     isMobile: false,

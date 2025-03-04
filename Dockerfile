@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon-x11-0 \
     && rm -rf /var/lib/apt/lists/*
 
-
 # Set the working directory
 WORKDIR /usr/src/app
 
